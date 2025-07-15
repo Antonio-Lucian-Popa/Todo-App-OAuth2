@@ -21,7 +21,7 @@ export function Login() {
     e.preventDefault();
     setLoading(true);
     clearError();
-    
+
     try {
       const data = await authService.login(email, password);
       setAuth(data);
@@ -36,7 +36,7 @@ export function Login() {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true);
     clearError();
-    
+
     try {
       const data = await authService.googleLogin(credentialResponse.credential);
       setAuth(data);
@@ -60,14 +60,14 @@ export function Login() {
             Sign in to your account to continue
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -80,7 +80,7 @@ export function Login() {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -103,16 +103,23 @@ export function Login() {
                 </Button>
               </div>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full" 
+
+            <div className="text-right text-sm">
+              <Link to="/forgot-password" className="text-primary hover:underline">
+                Ai uitat parola?
+              </Link>
+            </div>
+
+
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -123,7 +130,7 @@ export function Login() {
               </span>
             </div>
           </div>
-          
+
           <div className="flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
@@ -133,7 +140,7 @@ export function Login() {
               size="large"
             />
           </div>
-          
+
           <div className="text-center text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>
             <Link to="/register" className="text-primary hover:underline">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,19 +12,16 @@ export function ActivateAccount() {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const hasActivated = useRef(false);
 
     useEffect(() => {
-        const activate = async () => {
-            if (!token) {
-                setError('Token lipsă');
-                setLoading(false);
-                return;
-            }
+        if (!token || hasActivated.current) return;
+        hasActivated.current = true;
 
+        const activate = async () => {
             try {
                 const response = await authService.confirmEmail(token);
                 setMessage(response.message || 'Cont activat cu succes!');
-                // TODO: show btn for login
             } catch (err: any) {
                 setError(err.response?.data?.message || 'Activarea a eșuat.');
             } finally {

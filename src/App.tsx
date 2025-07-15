@@ -9,6 +9,8 @@ import { PrivateRoute } from './components/PrivateRoute';
 import useAuthStore from './store/authStore';
 import './App.css';
 import { ActivateAccount } from './pages/ActivateAccount';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -18,24 +20,28 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
                 isAuthenticated ? <Navigate to="/todos" replace /> : <Navigate to="/login" replace />
-              } 
+              }
             />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/confirm-email" element={<EmailConfirmation />} />
             <Route path="/activate" element={<ActivateAccount />} />
 
-            <Route 
-              path="/todos" 
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+
+            <Route
+              path="/todos"
               element={
                 <PrivateRoute>
                   <Todos />
                 </PrivateRoute>
-              } 
+              }
             />
           </Routes>
           <Toaster />
