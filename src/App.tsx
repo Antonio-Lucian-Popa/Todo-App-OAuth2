@@ -8,6 +8,7 @@ import { EmailConfirmation } from './pages/EmailConfirmation';
 import { PrivateRoute } from './components/PrivateRoute';
 import useAuthStore from './store/authStore';
 import './App.css';
+import { ActivateAccount } from './pages/ActivateAccount';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -26,6 +27,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/confirm-email" element={<EmailConfirmation />} />
+            <Route path="/activate" element={<ActivateAccount />} />
+
             <Route 
               path="/todos" 
               element={

@@ -11,7 +11,8 @@ import { authService } from '../services/authService';
 
 export function Register() {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -41,7 +42,7 @@ export function Register() {
     }
     
     try {
-      await authService.register(formData.email, formData.password, formData.name);
+      await authService.register(formData.email, formData.password, formData.firstName, formData.lastName);
       setIsSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -104,13 +105,26 @@ export function Register() {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">First Name</Label>
               <Input
-                id="name"
-                name="name"
+                id="firstName"
+                name="firstName"
                 type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
+                placeholder="Enter your first name"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Last Name</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                placeholder="Enter your last name"
+                value={formData.lastName}
                 onChange={handleChange}
                 required
               />
