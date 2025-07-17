@@ -20,15 +20,43 @@ const todoApi = axios.create({
 
 // Request interceptor pentru todo API - adaugă Authorization header
 todoApi.interceptors.request.use(
-  (config) => {
-    const token = useAuthStore.getState().accessToken;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    const { accessToken, refreshToken, setTokens, logout } = useAuthStore.getState();
+
+    // dacă tokenul există și e expirat
+    if (accessToken && isTokenExpired(accessToken)) {
+      try {
+        const response = await authApi.post('/api/auth/refresh', { refreshToken });
+        const newAccessToken = response.data.accessToken;
+        setTokens(newAccessToken);
+        config.headers.Authorization = `Bearer ${newAccessToken}`;
+      } catch (error) {
+        logout();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+    } else if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
+
+
+function isTokenExpired(token: string): boolean {
+  try {
+    const [, payload] = token.split('.');
+    const decoded = JSON.parse(atob(payload));
+    const exp = decoded.exp * 1000; // convert to ms
+    return Date.now() >= exp;
+  } catch {
+    return true;
+  }
+}
+
+
 
 // Response interceptor pentru todo API - refresh token automat
 todoApi.interceptors.response.use(

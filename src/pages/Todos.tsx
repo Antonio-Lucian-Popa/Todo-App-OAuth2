@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react';
 import { Header } from '../components/Header';
 import { TodoCard } from '../components/TodoCard';
 import { todoService, type Todo } from '../services/todoService';
@@ -30,6 +30,7 @@ export function Todos() {
     description: '',
     priority: 'MEDIUM',
     dueDate: '',
+    completed: false,
   });
 
   useEffect(() => {
@@ -56,7 +57,6 @@ export function Todos() {
   const filterTodos = () => {
     let filtered = todos;
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(todo =>
         todo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,14 +64,12 @@ export function Todos() {
       );
     }
 
-    // Filter by status
     if (filterStatus !== 'all') {
-      filtered = filtered.filter(todo => 
+      filtered = filtered.filter(todo =>
         filterStatus === 'completed' ? todo.completed : !todo.completed
       );
     }
 
-    // Filter by priority
     if (filterPriority !== 'all') {
       filtered = filtered.filter(todo => todo.priority === filterPriority);
     }
@@ -81,7 +79,7 @@ export function Todos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (editingTodo) {
         await todoService.updateTodo(editingTodo.id, {
@@ -102,7 +100,7 @@ export function Todos() {
           description: "Todo created successfully",
         });
       }
-      
+
       resetForm();
       setIsDialogOpen(false);
       fetchTodos();
@@ -118,17 +116,19 @@ export function Todos() {
   const handleEdit = (todo: Todo) => {
     setEditingTodo(todo);
     setFormData({
-      title: todo.title,
-      description: todo.description || '',
-      priority: todo.priority || 'MEDIUM',
-      dueDate: todo.dueDate || '',
+      title: todo.title ?? '',
+      description: todo.description ?? '',
+      priority: todo.priority ?? 'MEDIUM',
+      dueDate: todo.dueDate ?? '',
+      completed: todo.completed ?? false,
     });
+
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this todo?')) return;
-    
+
     try {
       await todoService.deleteTodo(id);
       toast({
@@ -164,6 +164,7 @@ export function Todos() {
       description: '',
       priority: 'MEDIUM',
       dueDate: '',
+      completed: false,
     });
     setEditingTodo(null);
   };
@@ -175,206 +176,315 @@ export function Todos() {
 
   const completedCount = todos.filter(todo => todo.completed).length;
   const pendingCount = todos.filter(todo => !todo.completed).length;
+  const highPriorityCount = todos.filter(todo => todo.priority === 'HIGH' && !todo.completed).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <Header />
-      
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900">Total Tasks</h3>
-            <p className="text-3xl font-bold text-blue-600">{todos.length}</p>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            My <span className="text-blue-600">Tasks</span>
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Stay organized and boost your productivity with our beautiful task management system
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="group bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Total Tasks</p>
+                <p className="text-3xl font-bold text-gray-900">{todos.length}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900">Completed</h3>
-            <p className="text-3xl font-bold text-green-600">{completedCount}</p>
+
+          <div className="group bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Completed</p>
+                <p className="text-3xl font-bold text-green-600">{completedCount}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-full group-hover:bg-green-200 transition-colors">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900">Pending</h3>
-            <p className="text-3xl font-bold text-orange-600">{pendingCount}</p>
+
+          <div className="group bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Pending</p>
+                <p className="text-3xl font-bold text-orange-600">{pendingCount}</p>
+              </div>
+              <div className="p-3 bg-orange-100 rounded-full group-hover:bg-orange-200 transition-colors">
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="group bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">High Priority</p>
+                <p className="text-3xl font-bold text-red-600">{highPriorityCount}</p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-full group-hover:bg-red-200 transition-colors">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Header with Search and Add Button */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search todos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64"
-              />
+        {/* Controls Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg mb-8 border border-white/20">
+          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+              <div className="relative group">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <Input
+                  placeholder="Search your todos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full sm:w-80 border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-lg"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-36 border-gray-200 focus:border-blue-400 rounded-lg">
+                    <Filter className="h-4 w-4 mr-2 text-gray-400" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterPriority} onValueChange={setFilterPriority}>
+                  <SelectTrigger className="w-36 border-gray-200 focus:border-blue-400 rounded-lg">
+                    <AlertCircle className="h-4 w-4 mr-2 text-gray-400" />
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priority</SelectItem>
+                    <SelectItem value="HIGH">High</SelectItem>
+                    <SelectItem value="MEDIUM">Medium</SelectItem>
+                    <SelectItem value="LOW">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            <div className="flex gap-2">
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="HIGH">High</SelectItem>
-                  <SelectItem value="MEDIUM">Medium</SelectItem>
-                  <SelectItem value="LOW">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Todo
-              </Button>
-            </DialogTrigger>
-            
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTodo ? 'Edit Todo' : 'Add New Todo'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingTodo ? 'Update your todo item' : 'Create a new todo item'}
-                </DialogDescription>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+
+            {/* Add Todo Button */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add New Task
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-sm">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold text-gray-900">
+                    {editingTodo ? 'Edit Task' : 'Create New Task'}
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-600">
+                    {editingTodo ? 'Update your task details below' : 'Add a new task to your todo list'}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="LOW">Low</SelectItem>
-                        <SelectItem value="MEDIUM">Medium</SelectItem>
-                        <SelectItem value="HIGH">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Label htmlFor="title" className="text-sm font-semibold text-gray-700">Task Title</Label>
                     <Input
-                      id="dueDate"
-                      type="date"
-                      value={formData.dueDate}
-                      onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-lg"
+                      placeholder="Enter task title..."
+                      required
                     />
                   </div>
-                </div>
-                
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={handleDialogClose}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    {editingTodo ? 'Update' : 'Create'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-lg resize-none"
+                      placeholder="Add task description..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="priority" className="text-sm font-semibold text-gray-700">Priority</Label>
+                      <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                        <SelectTrigger className="border-gray-200 focus:border-blue-400 rounded-lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="LOW">🟢 Low</SelectItem>
+                          <SelectItem value="MEDIUM">🟡 Medium</SelectItem>
+                          <SelectItem value="HIGH">🔴 High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="dueDate" className="text-sm font-semibold text-gray-700">Due Date</Label>
+                      <Input
+                        id="dueDate"
+                        type="date"
+                        value={formData.dueDate}
+                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                        className="border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleDialogClose}
+                      className="px-6 py-2 border-gray-200 hover:bg-gray-50 rounded-lg"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      {editingTodo ? 'Update Task' : 'Create Task'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
+          <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 rounded-lg">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
           </Alert>
         )}
 
         {/* Todo Tabs */}
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">All ({todos.length})</TabsTrigger>
-            <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-            <TabsTrigger value="completed">Completed ({completedCount})</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-8">Loading todos...</div>
-            ) : filteredTodos.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                {searchTerm || filterStatus !== 'all' || filterPriority !== 'all' 
-                  ? 'No todos match your filters' 
-                  : 'No todos yet. Create your first todo!'}
-              </div>
-            ) : (
-              filteredTodos.map((todo) => (
-                <TodoCard
-                  key={todo.id}
-                  todo={todo}
-                  onToggle={handleToggle}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))
-            )}
-          </TabsContent>
-          
-          <TabsContent value="pending" className="space-y-4">
-            {filteredTodos.filter(todo => !todo.completed).map((todo) => (
-              <TodoCard
-                key={todo.id}
-                todo={todo}
-                onToggle={handleToggle}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </TabsContent>
-          
-          <TabsContent value="completed" className="space-y-4">
-            {filteredTodos.filter(todo => todo.completed).map((todo) => (
-              <TodoCard
-                key={todo.id}
-                todo={todo}
-                onToggle={handleToggle}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </TabsContent>
-        </Tabs>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+          <Tabs defaultValue="all" className="w-full">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <TabsList className="grid w-full max-w-md grid-cols-3 bg-gray-100 rounded-lg p-1">
+                <TabsTrigger
+                  value="all"
+                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm font-medium rounded-md transition-all"
+                >
+                  All ({todos.length})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="pending"
+                  className="data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm font-medium rounded-md transition-all"
+                >
+                  Pending ({pendingCount})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="completed"
+                  className="data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm font-medium rounded-md transition-all"
+                >
+                  Completed ({completedCount})
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <div className="p-6">
+              <TabsContent value="all" className="space-y-4 mt-0">
+                {isLoading ? (
+                  <div className="text-center py-16">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 font-medium">Loading your tasks...</p>
+                  </div>
+                ) : filteredTodos.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Clock className="h-12 w-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {searchTerm || filterStatus !== 'all' || filterPriority !== 'all'
+                        ? 'No matching tasks found'
+                        : 'No tasks yet'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {searchTerm || filterStatus !== 'all' || filterPriority !== 'all'
+                        ? 'Try adjusting your search or filters'
+                        : 'Create your first task to get started!'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {filteredTodos.map((todo) => (
+                      <TodoCard
+                        key={todo.id}
+                        todo={todo}
+                        onToggle={handleToggle}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="pending" className="space-y-4 mt-0">
+                <div className="grid gap-4">
+                  {filteredTodos.filter(todo => !todo.completed).map((todo) => (
+                    <TodoCard
+                      key={todo.id}
+                      todo={todo}
+                      onToggle={handleToggle}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="completed" className="space-y-4 mt-0">
+                <div className="grid gap-4">
+                  {filteredTodos.filter(todo => todo.completed).map((todo) => (
+                    <TodoCard
+                      key={todo.id}
+                      todo={todo}
+                      onToggle={handleToggle}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
