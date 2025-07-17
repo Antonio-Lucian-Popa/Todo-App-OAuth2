@@ -3,7 +3,8 @@ import useAuthStore from '../store/authStore';
 
 // Auth API instance
 const authApi = axios.create({
-  baseURL: 'http://localhost:8080', // Auth backend URL
+  //baseURL: 'http://localhost:8080', // Auth backend URL
+  baseURL: 'http://antonio-dev.go.ro:8081/auth-server-api', 
   headers: {
     'Content-Type': 'application/json',
   },
